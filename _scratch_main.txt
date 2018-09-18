@@ -1,0 +1,6 @@
+# Nicholas Spyrison 17-09-2018.
+# Melbourne Census data ETL
+
+# Time sheet:
+date,hours,content
+17-09-2018,1,kick-off meeting_triage_quote
