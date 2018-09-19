@@ -3,4 +3,6 @@
 
 # Time sheet:
 date,hours,content
-17-09-2018,1,kick-off meeting_triage_quote
+17-09-2018,1,kick-off meeting_triage_quote (free?)
+paper line item stopped at 11:30am. 
+19-09-2018,2:15-,R
