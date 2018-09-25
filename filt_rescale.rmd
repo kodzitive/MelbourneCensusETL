@@ -1,0 +1,104 @@
+---
+title: "ABS Census ETL -- Rescale feasibility"
+author: "Nicholas S Spyrison"
+date: "24-Sept-2018"  #"`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "",
+  fig.height = 3,
+  fig.width = 7,
+  fig.align = "center",
+  cache = FALSE
+)
+```
+
+## The functions
+
+```{r cars}
+ABS_filt <- function(x) {
+  # don't want to touch the near 1's till trimodal issue straightend out
+  nrow_s <- nrow(x)
+  x <- x[(x[,  1] != "Total"), ]  # CD/SA1
+  x[(x[,  2] <=   9),  2] <- 0 # Population
+  x[(x[,  3] >= .01),  3] <- NA # Ethnicity-raw-count
+  x[(x[,  4] >= .01),  4] <- NA # Ethnicity-index
+  x[(x[,  5] >= .01),  5] <- NA # Ethnicity-raw-normalized
+  x[(x[,  6] >= .01),  6] <- NA # Ethnicity-norm-index
+  x[(x[,  7] >= .01),  7] <- NA # Mobility-raw-pct
+  x[(x[,  8] >= .01),  8] <- NA # Mobility-index
+  x[(x[,  9] >= .01),  9] <- NA # Generation-raw-SI
+  x[(x[, 10] >= .01), 10] <- NA # Generation-index
+  x[(x[, 11] >= .01), 11] <- NA # Income-raw-SI
+  x[(x[, 12] >= .01), 12] <- NA # Income-index
+  x[(x[, 13] >= .01), 13] <- NA # Education-raw-SI
+  x[(x[, 14] >= .01), 14] <- NA # Education-index
+  print(paste0("Droped rows:", nrow_s-nrow(x)))
+  return(x)
+}
+
+rescale01 <- function(df) { # Hard coded specifically for ABS output files.
+  apply(df[, 3:14], 2, function(x) {(x - min(x)) / diff(range(x))} )
+}
+```
+
+## The files
+
+```{r}
+library("readxl")
+### Sydney '06, '11, '16 *.xlsx not produced by Nick as of 25/09/2018.
+readxl::read_xlsx(
+  "./data/SMA-2006-2016-DA-diversityindices.xlsx", 
+  sheet = "2006", n_max = 100000, guess_max = 7000, skip = 1
+) -> sydn06
+readxl::read_xlsx(
+  "./data/SMA-2006-2016-DA-diversityindices.xlsx", 
+  sheet = "2011", n_max = 100000, guess_max = 7000, skip = 1
+) -> sydn11
+readxl::read_xlsx(
+  "./data/Collated data Sydney 2016 2011 2006 2001 as of Sept 20 w addr 5 yrs ago.xlsx", 
+  sheet = "2016", n_max = 100000, guess_max = 7000, skip = 1
+) -> sydn16
+
+library("readr")
+### Sydney '01, Melbourne '01, '06, '11, '16 *.csv's were produced by Nick.
+read_csv("./output/Sydney_2001_diversityindices.csv",
+         n_max = 100000, guess_max = 7000
+) -> sydn01
+read_csv("./output/Melbourne_2001_diversityindices.csv",
+         n_max = 100000, guess_max = 7000
+) -> melb01
+read_csv("./output/Melbourne_2006_diversityindices.csv",
+         n_max = 100000, guess_max = 7000
+) -> melb06
+read_csv("./output/Melbourne_2011_diversityindices.csv",
+         n_max = 100000, guess_max = 7000
+) -> melb11
+read_csv("./output/Melbourne_2016_diversityindices.csv",
+         n_max = 100000, guess_max = 7000
+) -> melb16
+```
+
+## Value handling
+
+```{r}
+sydn01 <- ABS_filt(sydn01) # "Droped rows: <Fill in here or remove comment>
+sydn06 <- ABS_filt(sydn06) # "Droped rows: <Fill in here or remove comment>
+sydn11 <- ABS_filt(sydn11) # "Droped rows: <Fill in here or remove comment>
+sydn16 <- ABS_filt(sydn16) # "Droped rows: <Fill in here or remove comment>
+melb01 <- ABS_filt(melb01) # "Droped rows: <Fill in here or remove comment>
+melb06 <- ABS_filt(melb06) # "Droped rows: <Fill in here or remove comment>
+melb11 <- ABS_filt(melb11) # "Droped rows: <Fill in here or remove comment>
+melb16 <- ABS_filt(melb16) # "Droped rows: <Fill in here or remove comment>
+
+library("GGally")
+GGally::ggpairs(sydn06[, 2:6])
+GGally::ggpairs(sydn06[, 7:14])
+# Do SI values stay within [0,1]?
+```

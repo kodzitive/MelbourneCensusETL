@@ -142,7 +142,7 @@ melb06_out <- ETL[,
     "Income-index", "Education-raw-SI", "Education-index")
   ]
 
-write.csv(melb06_out, row.names = TRUE,
+write.csv(melb06_out, row.names = FALSE,
           file = "./output/Melbourne_2006_diversityindices.csv")
 
 # :Melbourne 2006
@@ -295,7 +295,7 @@ melb11_out <- ETL[
      "Income-index", "Education-raw-SI", "Education-index")
   ]
 
-write.csv(melb11_out, row.names = TRUE,
+write.csv(melb11_out, row.names = FALSE,
           file = "./output/Melbourne_2011_diversityindices.csv")
 
 # :Melbourne 2011
@@ -457,5 +457,5 @@ melb16_out <- ETL[
      "Income-index", "Education-raw-SI", "Education-index")
   ]
 
-write.csv(x = melb16_out, row.names = TRUE,
+write.csv(x = melb16_out, row.names = FALSE,
           file = "./output/Melbourne_2016_diversityindices.csv")

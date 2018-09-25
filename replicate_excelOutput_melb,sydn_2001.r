@@ -142,7 +142,7 @@ melb01_out <- ETL[
      "Income-index", "Education-raw-SI", "Education-index")
   ]
 
-write.csv(melb01_out, row.names = TRUE,
+write.csv(melb01_out, row.names = FALSE,
           file = "./output/Melbourne_2001_diversityindices.csv")
 
 # :Melbourne 2001
@@ -291,5 +291,5 @@ sydn01_out <- ETL[
      "Income-index", "Education-raw-SI", "Education-index")
   ]
 
-write.csv(x = sydn01_out, row.names = TRUE,
+write.csv(x = sydn01_out, row.names = FALSE,
           file = "./output/Sydney_2001_diversityindices.csv")
