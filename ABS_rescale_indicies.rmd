@@ -1,15 +1,16 @@
 ---
-title: "ABS Census ETL -- Rescale feasibility"
+title: "ABS Census -- Rescale Indices"
 author: "Nicholas S Spyrison"
-date: "24-Sept-2018"  #"`r Sys.Date()`"
+date: "September 2018"  #"`r Sys.Date()`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE, eval=TRUE}
 knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   collapse = TRUE,
+  eval = FALSE,
   echo = TRUE,
   comment = "",
   fig.height = 3,
@@ -53,7 +54,7 @@ ABS_rescale01 <- function(df) {
 }
 ```
 
-## The files
+## Read indices files
 
 ```{r}
 #library("readxl")
@@ -90,7 +91,7 @@ readr::read_csv("./output/Melbourne_2016_diversityindices.csv",
 ) %>% tibble::as_tibble() -> melb16
 ```
 
-## Value handling
+## Manipulate indicies files
 
 ```{r}
 ### Remove "Total" row, handle near 0's.
@@ -122,7 +123,7 @@ melb11[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb11[, c(3,5,7,9,11,13)])
 melb16[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb16[, c(3,5,7,9,11,13)])
 ```
 
-## Output
+## Wrtie output files
 
 ```{r}
 write.csv(x = sydn01, row.names = FALSE,
@@ -143,11 +144,9 @@ write.csv(x = melb16, row.names = FALSE,
           file = "./output/Melbourne_2016_diversityindices.csv")
 ```
 
-
-## Manual Check
-
-```{r}
-# library("GGally")
+```{r, echo=FALSE}
+##### Manual Check
+## library("GGally")
 # GGally::ggpairs(sydn06[, 2:6])
 # GGally::ggpairs(sydn06[, 7:14])
 # # Do SI values stay within [0,1]?
