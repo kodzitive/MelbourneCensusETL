@@ -6,7 +6,7 @@ library("dplyr")
 library("tibble")
 
 # read data
-readxl::read_excel(path = "./data/Collated data Melbourne 2016 2011 2006 updated Sept 20.xlsx",
+readxl::read_excel(path = "./data/Collated data Melbourne 2016 2011 2006 2001 updated Sept 20.xlsx",
            sheet = "2001", col_names = TRUE, na = "", trim_ws = TRUE,
            skip = 1, n_max = 99999, guess_max = 5842
 ) %>% as_tibble() -> melb01_in
@@ -144,6 +144,7 @@ melb01_out <- ETL[
 
 write.csv(melb01_out, row.names = FALSE,
           file = "./output/Melbourne_2001_diversityindices.csv")
+print("Melbourne 2001 saved.")
 
 # :Melbourne 2001
 # ===== Melb 2001 above. Sydn 2001 below ===== #
@@ -293,3 +294,6 @@ sydn01_out <- ETL[
 
 write.csv(x = sydn01_out, row.names = FALSE,
           file = "./output/Sydney_2001_diversityindices.csv")
+
+print("Sydney 2001 saved.")
+print("End of script reached.")

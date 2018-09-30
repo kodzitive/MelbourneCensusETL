@@ -144,6 +144,7 @@ melb06_out <- ETL[,
 
 write.csv(melb06_out, row.names = FALSE,
           file = "./output/Melbourne_2006_diversityindices.csv")
+print("Melbourne 2006 saved.")
 
 # :Melbourne 2006
 # ===== Melb 2006 above. Melb 2011 below ===== #
@@ -297,6 +298,7 @@ melb11_out <- ETL[
 
 write.csv(melb11_out, row.names = FALSE,
           file = "./output/Melbourne_2011_diversityindices.csv")
+print("Melbourne 2011 saved.")
 
 # :Melbourne 2011
 # ===== Melb 2011 above. Melb 2016 below ===== #
@@ -459,3 +461,6 @@ melb16_out <- ETL[
 
 write.csv(x = melb16_out, row.names = FALSE,
           file = "./output/Melbourne_2016_diversityindices.csv")
+
+print("Melbourne 2016 saved.")
+print("End of script reached.")
