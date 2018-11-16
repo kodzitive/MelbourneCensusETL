@@ -51,6 +51,7 @@ Each of `diversityindices.csv` files were read in, total rows were droped, rows 
 * `ABS_rescale_indicies.html` easier to read.
 * `ABS_rescale_indicies.rmd` for running in r.
 
+
 ### Future suggestion
 
 * The Process going from census to collated data files, should be made transparent, documented and reproducable.
