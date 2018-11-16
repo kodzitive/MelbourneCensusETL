@@ -1,0 +1,55 @@
+---
+title: "Meta-ETL overview"
+author: "Nicholas S Spyrison"
+date: "November 2018"  #"`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  eval = FALSE,
+  echo = TRUE,
+  comment = "",
+  fig.height = 3,
+  fig.width = 7,
+  fig.align = "center",
+  cache = FALSE
+)
+```
+
+## Document summary
+
+This document explains the source files ("collated" census data) and high-level mapping to target files ("diversityindices"), and suggestions for going forward. This woirk pertains to the Superdiversity project that Alan Gamlen (et. al.?) presented in Sydney, November 2018. Files contained Melbourne and Sydney census data from 2001, 2006, 2011, and 2016. Census' have changed, significantly in some categories, over this period.
+
+### Provided files
+
+the example target file provided was `SMA-2006-2016-DA-diversityindices.xlsx`, which contains 2006, 2011, and 2016 Sydney diversity indices. 
+
+The example mapping provided was `SMA-2016-mapindices.xlsx`, containing 2006, 2011, and 2016 Sydney data going from some subset of collated columns and applying functions in excel to get to diversity indices. 
+
+The source files provided were:
+
+* `Collated data Melbourne 2016 2011 2006 2001 updated Sept 20.xlsx` For Melbourne 2001 excluding ethnicity data.
+* `Collated data Sydney 2016 2011 2006 2001 as of Sept 20 w addr 5 yrs ago.xlsx` For Sydney 2001 excluding ethnicity data.
+* `ANC multi 2001 counts Melb and Sydney.xlsx` For Melbourne and Sydney 2001 ethnicity data (to be joined to the above).
+* `Collated data Melbourne 2016 2011 2006.xlsx` For Melbourne 2006, 2011, and 2016 collated data.
+
+### ETL to diversity indices
+
+The files were read (and joined when appropriate) via the statistics program R. Each output file was saved to it's own reproducable file named <City_year_diversitindices.csv> (eg. `Melbourne_2001_diversityindices.csv`)
+
+### Diversity indices cleaned and rescaled
+
+Each of `diversityindices.csv` files were read in, total rows were droped, rows with population below 10 had their values changed to NA, and non-tertile coulmns having a value below .01 were changed to NA. the remaining non-tertile values were then rescaled from 0 to 1 via (x-min(x))/range(x). Each resulting file was saved to a file named <City_year_diversityindices_cleanrescale.csv> (eg. `Melborune_2001_diversityindicies_cleanrescale.csv`).
+
+### Future suggestion
+
+* The Process going from census to collated data files, should be made transparent, documented and reproducable.
+* The names of the persons/ballots/population should be validated as an apples to apples count and collumn header should be made consistant.
+* Tax/income columns should be reviewed as they have varying number and sizes of bins, what effect does this have on the SI values?
+* Edcation formulas (esp. certificates) should be reviewed by someone with more knowledge of Australian education. number of columns going into SI should be reviewed, as they are already boiled down to few columns.
+* Right skewed, uni-modal distributions should be log-transformed to reduce the squashing of the bulk of the dist. as a result of a few high end values.
+* Left skewed, uni-modal distributions should have a similar inverse log-transform, for analogous reasons.

@@ -1,7 +1,7 @@
 ---
 title: "ABS Census -- Rescale Indices"
 author: "Nicholas S Spyrison"
-date: "September 2018"  #"`r Sys.Date()`"
+date: "October 2018"  #"`r Sys.Date()`"
 output: html_document
 ---
 
@@ -52,7 +52,8 @@ ABS_as_numeric <- function(df) {
 }
 
 ABS_rescale01 <- function(df) {
-  ans <- apply(df, 2, function(x) {(x - min(x)) / diff(range(x))} )
+  ans <- apply(df, 2, function(x)
+    {(x - min(x, na.rm = T)) / (max(x, na.rm = T) - min(x, na.rm = T) )} )
   return(ans)
 }
 ```
@@ -94,9 +95,11 @@ readr::read_csv("./output/Melbourne_2016_diversityindices.csv",
   tibble::as_tibble() -> melb16
 ```
 
-## Manipulate indicies files
+## Clean the files (optionally save a backup)
 
 ```{r}
+##### Cleaning steps x2
+
 ### Remove "Total" row, handle near 0's.
 sydn01 <- ABS_filt(sydn01) # 1 dropped.
 sydn06 <- ABS_filt(sydn06) # 1 dropped.
@@ -117,8 +120,29 @@ melb06[, c(3:14)] <- ABS_as_numeric(melb06[, c(3:14)])
 melb11[, c(3:14)] <- ABS_as_numeric(melb11[, c(3:14)])
 melb16[, c(3:14)] <- ABS_as_numeric(melb16[, c(3:14)])
 
+# ### Hot save for backup, after cleaning, but before rescale
+# write.csv(x = sydn01, row.names = FALSE,
+#           file = "./backup/Sydney_2001_diversityindices_clean.csv")
+# write.csv(x = sydn06, row.names = FALSE,
+#           file = "./backup/Sydney_2006_diversityindices_clean.csv")
+# write.csv(x = sydn11, row.names = FALSE,
+#           file = "./backup/Sydney_2011_diversityindices_clean.csv")
+# write.csv(x = sydn16, row.names = FALSE,
+#           file = "./backup/Sydney_2016_diversityindices_clean.csv")
+# write.csv(x = melb01, row.names = FALSE,
+#           file = "./backup/Melbourne_2001_diversityindices_clean.csv")
+# write.csv(x = melb06, row.names = FALSE,
+#           file = "./backup/Melbourne_2006_diversityindices_clean.csv")
+# write.csv(x = melb11, row.names = FALSE,
+#           file = "./backup/Melbourne_2011_diversityindices_clean.csv")
+# write.csv(x = melb16, row.names = FALSE,
+#           file = "./backup/Melbourne_2016_diversityindices_clean.csv")
+```
+
+## Rescale and save files
+
+```{r}
 ### Rescale01
-# TODO: fix issue indutroducting near all NAs.
 sydn01[, c(3,5,7,9,11,13)] <- ABS_rescale01(sydn01[, c(3,5,7,9,11,13)])
 sydn06[, c(3,5,7,9,11,13)] <- ABS_rescale01(sydn06[, c(3,5,7,9,11,13)])
 sydn11[, c(3,5,7,9,11,13)] <- ABS_rescale01(sydn11[, c(3,5,7,9,11,13)])
@@ -127,33 +151,22 @@ melb01[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb01[, c(3,5,7,9,11,13)])
 melb06[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb06[, c(3,5,7,9,11,13)])
 melb11[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb11[, c(3,5,7,9,11,13)])
 melb16[, c(3,5,7,9,11,13)] <- ABS_rescale01(melb16[, c(3,5,7,9,11,13)])
-```
 
-## Wrtie output files
-
-```{r}
+### write output
 write.csv(x = sydn01, row.names = FALSE,
-          file = "./output/Sydney_2001_diversityindices.csv")
+          file = "./output/Sydney_2001_diversityindices_cleanrescale.csv")
 write.csv(x = sydn06, row.names = FALSE,
-          file = "./output/Sydney_2006_diversityindices.csv")
+          file = "./output/Sydney_2006_diversityindices_cleanrescale.csv")
 write.csv(x = sydn11, row.names = FALSE,
-          file = "./output/Sydney_2011_diversityindices.csv")
+          file = "./output/Sydney_2011_diversityindices_cleanrescale.csv")
 write.csv(x = sydn16, row.names = FALSE,
-          file = "./output/Sydney_2016_diversityindices.csv")
+          file = "./output/Sydney_2016_diversityindices_cleanrescale.csv")
 write.csv(x = melb01, row.names = FALSE,
-          file = "./output/Melbourne_2001_diversityindices.csv")
+          file = "./output/Melbourne_2001_diversityindices_cleanrescale.csv")
 write.csv(x = melb06, row.names = FALSE,
-          file = "./output/Melbourne_2006_diversityindices.csv")
+          file = "./output/Melbourne_2006_diversityindices_cleanrescale.csv")
 write.csv(x = melb11, row.names = FALSE,
-          file = "./output/Melbourne_2011_diversityindices.csv")
+          file = "./output/Melbourne_2011_diversityindices_cleanrescale.csv")
 write.csv(x = melb16, row.names = FALSE,
-          file = "./output/Melbourne_2016_diversityindices.csv")
-```
-
-```{r, echo=FALSE}
-##### Manual Check
-## library("GGally")
-# GGally::ggpairs(sydn06[, 2:6])
-# GGally::ggpairs(sydn06[, 7:14])
-# # Do SI values stay within [0,1]?
+          file = "./output/Melbourne_2016_diversityindices_cleanrescale.csv")
 ```
