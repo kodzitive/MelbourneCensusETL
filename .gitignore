@@ -6,3 +6,5 @@ data/
 nppBackup/
 timesheet.txt
 output/
+backup/
+cleaned_backup_20181004.zip

@@ -1,4 +1,4 @@
-# Nicholas Spyrison 17/09/2018 - 20/09/2018.
+# Nicholas Spyrison 17/09/2018 - 04/10/2018.
 
 # packages used
 library("readxl")
@@ -8,14 +8,29 @@ library("tibble")
 # read data
 readxl::read_excel(path = "./data/Collated data Melbourne 2016 2011 2006 2001 updated Sept 20.xlsx",
            sheet = "2001", col_names = TRUE, na = "", trim_ws = TRUE,
-           skip = 1, n_max = 99999, guess_max = 5842
-) %>% as_tibble() -> melb01_in
+           skip = 1, n_max = 99999, guess_max = 5841
+) %>% tibble::as_tibble() -> melb01_in
 
-# stage
-ETL <- melb01_in
+readxl::read_excel(path = "./data/ANC multi 2001 counts Melb and Sydney.xlsx",
+           sheet = "Melbourne", col_names = TRUE, na = "", trim_ws = TRUE,
+           skip = 1, n_max = 99999, guess_max = 5841
+) %>% tibble::as_tibble() -> melb01_ethn_in
+melb01_ethn_in <- melb01_ethn_in[(melb01_ethn_in[, 1] != "205 Melbourne"), ]
+  # remove oddly named total row.
+melb01_ethn_in$CD <- as.numeric(melb01_ethn_in$CD)
+
+melb01_join_in <-
+  left_join(melb01_in, melb01_ethn_in, by = "CD", suffix = c("", ".ethn") )
+
+### Population check, are both files the same?
+table(melb01_join_in$Population == melb01_join_in$Population.ethn)
+# yay, 5840 true, 0 false! missing one from the original set?
+
+# stage1: subset required variables
+ETL <- melb01_join_in
 ETL <- ETL[
   , c("CD", "Population", # Regional grain
-      "ID count", "ID count/ Pop.", # for Ethnicity
+      "ID count.ethn", "ID count/ Pop..ethn", # for Ethnicity
       "% Different address 5 yrs ago", # for Mobility
       # for Generation SI:
       "Both parents born in Australia",
@@ -32,19 +47,19 @@ ETL <- ETL[
       "Year 9 or equivalent", "Year 8 or below", "Did not go to school"
   )]
 
-# calc metric values for ethn-raw, ethn-norm, mobility-raw
+# stage2: mutate through-put variables
 ETL <- mutate(
   .data = ETL,
   `Ethnicity-raw-count` =
-    ifelse(`ID count` > 0, `ID count`, NA),
+    ifelse(`ID count.ethn` > 0, `ID count.ethn`, NA),
   `Ethnicity-raw-normalized` =
-    ifelse(`ID count/ Pop.` > 0, `ID count/ Pop.`, NA),
+    ifelse(`ID count/ Pop..ethn` > 0, `ID count/ Pop..ethn`, NA),
   `Mobility-raw-pct` =
     ifelse(`% Different address 5 yrs ago` > 0,
            `% Different address 5 yrs ago`, NA)
 )
 
-# stage1 for metric calcs for generation, income, education
+# stage3: sum variables: generation, income, and education
 ETL <- mutate(
   .data = ETL,
   `generation_faux_total` =
@@ -61,7 +76,7 @@ ETL <- mutate(
     `Year 9 or equivalent` + `Year 8 or below` + `Did not go to school`
 )
 
-# stage2 for metric calcs for generation, income, education
+# stage4: calculate variables used in Simpson's Index (SI)
 ETL <- mutate(
   .data = ETL,
   # generation:
@@ -97,7 +112,7 @@ ETL <- mutate(
                    `Did not go to school`) / `education_total`
 )
 
-# calc metric values for generation, income, education
+# stage5: calculate SI values for generation, income, and education
 ETL <- mutate(
   .data = ETL,
   `Generation-raw-SI` =
@@ -123,7 +138,7 @@ ETL <- mutate(
     )
 )
 
-# create tetile 'index' on metric values
+# stage6: create tetile 'index' on metric values
 ETL <- mutate(
   .data = ETL,
   `Ethnicity-index`      = ntile(`Ethnicity-raw-count`, 3),
@@ -134,7 +149,7 @@ ETL <- mutate(
   `Education-index`      = ntile(`Education-raw-SI`, 3)
 )
 
-# reorder by column name
+# subset and reorder columns
 melb01_out <- ETL[
   ,c("CD", "Population", "Ethnicity-raw-count", "Ethnicity-index",
      "Ethnicity-raw-normalized", "Ethnicity-norm-index", "Mobility-raw-pct",
@@ -158,14 +173,22 @@ library("tibble")
 # read data
 read_excel(path = "./data/Collated data Sydney 2016 2011 2006 2001 as of Sept 20 w addr 5 yrs ago.xlsx",
            sheet = "2001", col_names = TRUE, na = "", trim_ws = TRUE,
-           skip = 1, n_max = 99999, guess_max = 10290
+           skip = 1, n_max = 99999, guess_max = 6629
 ) %>% as_tibble() -> sydn01_in
 
-# stage
-ETL <- sydn01_in
+readxl::read_excel(path = "./data/ANC multi 2001 counts Melb and Sydney.xlsx",
+                   sheet = "Sydney", col_names = TRUE, na = "", trim_ws = TRUE,
+                   skip = 1, n_max = 99999, guess_max = 6629
+) %>% tibble::as_tibble() -> sydn01_ethn_in
+
+sydn01_join_in <-
+  left_join(sydn01_in, sydn01_ethn_in, by = "CD", suffix = c("", ".ethn") )
+
+# stage1: subset required variables
+ETL <- sydn01_join_in
 ETL <- ETL[
   , c("CD", "Population", # Regional grain
-      "ID count", "ID count/ Pop.", # for Ethnicity
+      "ID count.ethn", "ID count/ Pop..ethn", # for Ethnicity
       "% Different address 5 yrs ago", # for Mobility
       # for Generation SI:
       "Both parents born in Australia",
@@ -182,19 +205,18 @@ ETL <- ETL[
       "Year 9 or equivalent", "Year 8 or below", "Did not go to school"
   )]
 
-# calc metric values for ethn-raw, ethn-norm, mobility-raw
-ETL <- mutate(
-  .data = ETL,
+# stage2: mutate through-put variables.
+ETL <- mutate(.data = ETL,
   `Ethnicity-raw-count` =
-    ifelse(`ID count` > 0, `ID count`, NA),
+    ifelse(`ID count.ethn` > 0, `ID count.ethn`, NA),
   `Ethnicity-raw-normalized` =
-    ifelse(`ID count/ Pop.` > 0, `ID count/ Pop.`, NA),
+    ifelse(`ID count/ Pop..ethn` > 0, `ID count/ Pop..ethn`, NA),
   `Mobility-raw-pct` =
     ifelse(`% Different address 5 yrs ago` > 0,
            `% Different address 5 yrs ago`, NA)
 )
 
-# stage1 for metric calcs for generation, income, education
+# stage3: sum totals
 ETL <- mutate(
   .data = ETL,
   `generation_faux_total` =
@@ -211,30 +233,30 @@ ETL <- mutate(
     `Year 9 or equivalent` + `Year 8 or below` + `Did not go to school`
 )
 
-# stage2 for metric calcs for generation, income, education
+# stage4: calculate metric to use Simpson's Index (SI) on
 ETL <- mutate(
   .data = ETL,
   # generation:
   `pct_both_born_aus` =
     `Both parents born in Australia` / `generation_faux_total`,
-  `pct_one+_born_os` =
+  `pct_one+_born_os`  =
     `One or both parents born overseas` / `generation_faux_total`,
-  `pct_before_1986` = `Before 1986` / `generation_faux_total`,
-  `pct_1986_to_1990` = `Arrived 1986-1990` / `generation_faux_total`,
-  `pct_1991_to_2001` = `Arrived 1991-2001` / `generation_faux_total`,
+  `pct_before_1986`   = `Before 1986` / `generation_faux_total`,
+  `pct_1986_to_1990`  = `Arrived 1986-1990` / `generation_faux_total`,
+  `pct_1991_to_2001`  = `Arrived 1991-2001` / `generation_faux_total`,
   # income:
-  `pct_$1` = `,$1 - $39,` / `income_total`,
-  `pct_$40` = `,$40 - $79,` / `income_total`,
-  `pct_$80` = `,$80 - $119,` / `income_total`,
-  `pct_$120` = `,$120 - $159,` / `income_total`,
-  `pct_$160` = `,$160 - $199,` / `income_total`,
-  `pct_$200` = `,$200 - $299,` / `income_total`,
-  `pct_$300` = `,$300 - $399,` / `income_total`,
-  `pct_$400` = `,$400 - $499,` / `income_total`,
-  `pct_$500` = `,$500 - $599,` / `income_total`,
-  `pct_$600` = `,$600 - $699,` / `income_total`,
-  `pct_$700` = `,$700 - $799,` / `income_total`,
-  `pct_$800` = `,$800 - $999,` / `income_total`,
+  `pct_$1`    = `,$1 - $39,` / `income_total`,
+  `pct_$40`   = `,$40 - $79,` / `income_total`,
+  `pct_$80`   = `,$80 - $119,` / `income_total`,
+  `pct_$120`  = `,$120 - $159,` / `income_total`,
+  `pct_$160`  = `,$160 - $199,` / `income_total`,
+  `pct_$200`  = `,$200 - $299,` / `income_total`,
+  `pct_$300`  = `,$300 - $399,` / `income_total`,
+  `pct_$400`  = `,$400 - $499,` / `income_total`,
+  `pct_$500`  = `,$500 - $599,` / `income_total`,
+  `pct_$600`  = `,$600 - $699,` / `income_total`,
+  `pct_$700`  = `,$700 - $799,` / `income_total`,
+  `pct_$800`  = `,$800 - $999,` / `income_total`,
   `pct_$1000` = `,$1,000 - $1,499,` / `income_total`,
   `pct_$1500` = `,$1,500 or more,` / `income_total`,
   # education:
@@ -247,7 +269,7 @@ ETL <- mutate(
                    `Did not go to school`) / `education_total`
 )
 
-# calc metric values for generation, income, education
+# stage5: calculate SI values for generation, income, and education
 ETL <- mutate(
   .data = ETL,
   `Generation-raw-SI` =
@@ -273,7 +295,7 @@ ETL <- mutate(
     )
 )
 
-# create tetile 'index' on metric values
+# stage6: create tetile 'index' on metric values
 ETL <- mutate(
   .data = ETL,
   `Ethnicity-index`      = ntile(`Ethnicity-raw-count`, 3),
@@ -284,7 +306,7 @@ ETL <- mutate(
   `Education-index`      = ntile(`Education-raw-SI`, 3)
 )
 
-# reorder by column name
+# subset and reorder coulmns
 sydn01_out <- ETL[
   ,c("CD", "Population", "Ethnicity-raw-count", "Ethnicity-index",
      "Ethnicity-raw-normalized", "Ethnicity-norm-index", "Mobility-raw-pct",
@@ -294,6 +316,5 @@ sydn01_out <- ETL[
 
 write.csv(x = sydn01_out, row.names = FALSE,
           file = "./output/Sydney_2001_diversityindices.csv")
-
 print("Sydney 2001 saved.")
 print("End of script reached.")
